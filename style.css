@@ -42,9 +42,9 @@
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Step Wizard Lines */
+/* Step Wizard Styles */
 .step-active .step-circle {
-    background-color: #0d9488;
+    background-color: #0d9488; /* brand-600 */
     color: white;
     border-color: #0d9488;
 }
@@ -55,6 +55,4 @@
     border-color: #0d9488;
 }
 
-.step-completed .step-line {
-    background-color: #0d9488;
-}
+/* Note: Step lines are handled via JS class manipulation now for better control */
