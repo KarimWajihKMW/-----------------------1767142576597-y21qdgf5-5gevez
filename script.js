@@ -83,8 +83,9 @@ const app = {
     // --- Views ---
 
     renderHome(container) {
+        // Fix: Use spread operator to clone products to avoid mutating original array when sorting
         let filteredProducts = this.state.filter === 'all' 
-            ? products 
+            ? [...products] 
             : products.filter(p => p.category === this.state.filter);
         
         // Sorting logic
@@ -416,13 +417,21 @@ const app = {
     },
 
     loadCart() {
-        const stored = localStorage.getItem('akwadra_cart');
-        if (stored) this.state.cart = JSON.parse(stored);
-        this.updateCartUI();
+        try {
+            const stored = localStorage.getItem('akwadra_cart');
+            if (stored) this.state.cart = JSON.parse(stored);
+            this.updateCartUI();
+        } catch (e) {
+            console.warn("Could not load cart from storage", e);
+        }
     },
 
     saveCart() {
-        localStorage.setItem('akwadra_cart', JSON.stringify(this.state.cart));
+        try {
+            localStorage.setItem('akwadra_cart', JSON.stringify(this.state.cart));
+        } catch (e) {
+            console.warn("Could not save cart to storage", e);
+        }
     },
     
     clearCart() {
@@ -439,20 +448,32 @@ const app = {
     // Checkout Wizard Logic
     nextStep() {
         if(this.state.step < 3) {
-            // Mark current as completed
-            document.getElementById(`step-indicator-${this.state.step}`).classList.add('step-completed');
-            document.getElementById(`step-indicator-${this.state.step}`).classList.remove('step-active');
+            // 1. Mark current indicator as completed
+            const currentIndicator = document.getElementById(`step-indicator-${this.state.step}`);
+            currentIndicator.classList.add('step-completed');
+            currentIndicator.classList.remove('step-active');
+
+            // 2. Color the line connecting to next step
+            const line = document.getElementById(`line-${this.state.step}`);
+            if(line) {
+                line.classList.remove('bg-gray-200');
+                line.classList.add('bg-brand-600');
+            }
             
-            // Hide current content
+            // 3. Hide current content
             document.getElementById(`step-content-${this.state.step}`).classList.add('hidden');
             
+            // 4. Increment Step
             this.state.step++;
             
-            // Show next content
+            // 5. Show next content
             document.getElementById(`step-content-${this.state.step}`).classList.remove('hidden');
-            document.getElementById(`step-indicator-${this.state.step}`).classList.add('step-active');
             
-            // Update buttons
+            // 6. Mark next indicator as active
+            const nextIndicator = document.getElementById(`step-indicator-${this.state.step}`);
+            nextIndicator.classList.add('step-active');
+            
+            // 7. Update buttons
             document.getElementById('prev-btn').classList.remove('hidden');
             if(this.state.step === 3) {
                 document.getElementById('checkout-nav').classList.add('hidden'); // Hide buttons on success
@@ -462,15 +483,29 @@ const app = {
 
     prevStep() {
         if(this.state.step > 1) {
-             // Reset current
-             document.getElementById(`step-indicator-${this.state.step}`).classList.remove('step-active');
+             // 1. Reset current indicator
+             const currentIndicator = document.getElementById(`step-indicator-${this.state.step}`);
+             currentIndicator.classList.remove('step-active');
+             
+             // 2. Hide current content
              document.getElementById(`step-content-${this.state.step}`).classList.add('hidden');
              
+             // 3. Decrement Step
              this.state.step--;
+
+             // 4. Reset line color
+             const line = document.getElementById(`line-${this.state.step}`);
+             if(line) {
+                 line.classList.add('bg-gray-200');
+                 line.classList.remove('bg-brand-600');
+             }
              
-             // Restore prev
-             document.getElementById(`step-indicator-${this.state.step}`).classList.remove('step-completed');
-             document.getElementById(`step-indicator-${this.state.step}`).classList.add('step-active');
+             // 5. Restore prev indicator status (remove completed, add active)
+             const prevIndicator = document.getElementById(`step-indicator-${this.state.step}`);
+             prevIndicator.classList.remove('step-completed');
+             prevIndicator.classList.add('step-active');
+
+             // 6. Show prev content
              document.getElementById(`step-content-${this.state.step}`).classList.remove('hidden');
 
              if(this.state.step === 1) {
@@ -491,7 +526,9 @@ const app = {
     }
 };
 
-// Initialize
+// Initialize Global App
+window.app = app;
+
 document.addEventListener('DOMContentLoaded', () => {
     app.init();
 });
