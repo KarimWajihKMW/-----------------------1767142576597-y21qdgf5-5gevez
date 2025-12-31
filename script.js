@@ -1,5 +1,6 @@
 /**
  * Akwadra E-Commerce Store Logic
+ * Updated to fix Script Error in restricted environments and CSS/Logic bugs in wizard.
  */
 
 const products = [
@@ -53,7 +54,7 @@ const products = [
     }
 ];
 
-// Use window.app to ensure global accessibility for inline event handlers
+// Use window.app to ensure global availability even in some strict module environments
 window.app = {
     state: {
         cart: [],
@@ -70,6 +71,8 @@ window.app = {
 
     navigate(view, param = null) {
         const container = document.getElementById('app');
+        if (!container) return;
+        
         window.scrollTo(0,0);
         
         if (view === 'home') {
@@ -84,9 +87,8 @@ window.app = {
     // --- Views ---
 
     renderHome(container) {
-        // Fix: Use Spread operator to create a copy before sorting to avoid mutating the original products array
         let filteredProducts = this.state.filter === 'all' 
-            ? [...products] 
+            ? products 
             : products.filter(p => p.category === this.state.filter);
         
         // Sorting logic
@@ -116,7 +118,7 @@ window.app = {
                         ${this.getFilterButtonHTML('fashion', 'أزياء')}
                         ${this.getFilterButtonHTML('wearables', 'ساعات')}
                     </div>
-                    <select onchange="app.setSort(this.value)" class="bg-white border-none shadow-sm rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer">
+                    <select onchange="window.app.setSort(this.value)" class="bg-white border-none shadow-sm rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer">
                         <option value="default">ترتيب افتراضي</option>
                         <option value="low-high" ${this.state.sort === 'low-high' ? 'selected' : ''}>السعر: الأقل للأعلى</option>
                         <option value="high-low" ${this.state.sort === 'high-low' ? 'selected' : ''}>السعر: الأعلى للأقل</option>
@@ -137,7 +139,7 @@ window.app = {
 
         container.innerHTML = `
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in">
-                <button onclick="app.navigate('home')" class="mb-6 flex items-center text-gray-500 hover:text-brand-600 transition">
+                <button onclick="window.app.navigate('home')" class="mb-6 flex items-center text-gray-500 hover:text-brand-600 transition">
                     <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                     العودة للمتجر
                 </button>
@@ -157,7 +159,7 @@ window.app = {
                             </div>
                         </div>
                         <div class="flex gap-4">
-                            <button onclick="app.addToCart(${product.id})" class="flex-1 bg-brand-600 text-white py-4 rounded-xl font-bold hover:bg-brand-700 transition shadow-lg hover:shadow-brand-500/30">
+                            <button onclick="window.app.addToCart(${product.id})" class="flex-1 bg-brand-600 text-white py-4 rounded-xl font-bold hover:bg-brand-700 transition shadow-lg hover:shadow-brand-500/30">
                                 أضف للسلة
                             </button>
                             <button class="p-4 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-500">
@@ -210,12 +212,14 @@ window.app = {
                             <div class="step-circle w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold bg-white text-gray-500 z-10 transition-colors duration-300">1</div>
                             <div class="text-xs mt-2 font-semibold text-gray-500">الشحن</div>
                         </div>
+                        <!-- Line 1 -->
                         <div class="step-line h-1 flex-auto bg-gray-200 -mt-6 transition-colors duration-300" id="line-1"></div>
                         
                         <div class="step-item relative flex flex-col items-center flex-1" id="step-indicator-2">
                             <div class="step-circle w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center font-bold bg-white text-gray-500 z-10 transition-colors duration-300">2</div>
                             <div class="text-xs mt-2 font-semibold text-gray-500">الدفع</div>
                         </div>
+                        <!-- Line 2 -->
                         <div class="step-line h-1 flex-auto bg-gray-200 -mt-6 transition-colors duration-300" id="line-2"></div>
 
                         <div class="step-item relative flex flex-col items-center flex-1" id="step-indicator-3">
@@ -270,15 +274,15 @@ window.app = {
                         </div>
                         <h3 class="text-2xl font-bold text-gray-900 mb-2">تم الطلب بنجاح!</h3>
                         <p class="text-gray-500 mb-8">رقم طلبك هو #49230. سنقوم بإرسال التفاصيل إلى بريدك الإلكتروني.</p>
-                        <button onclick="app.clearCart(); app.navigate('home')" class="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition">
+                        <button onclick="window.app.clearCart(); window.app.navigate('home')" class="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition">
                             العودة للتسوق
                         </button>
                     </div>
 
                     <!-- Navigation Buttons -->
                     <div class="flex justify-between mt-8 pt-6 border-t" id="checkout-nav">
-                        <button id="prev-btn" onclick="app.prevStep()" class="px-6 py-2 text-gray-500 hover:text-gray-800 disabled:opacity-50 hidden">سابق</button>
-                        <button id="next-btn" onclick="app.nextStep()" class="bg-brand-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-brand-700 transition mr-auto">التالي</button>
+                        <button id="prev-btn" onclick="window.app.prevStep()" class="px-6 py-2 text-gray-500 hover:text-gray-800 disabled:opacity-50 hidden">سابق</button>
+                        <button id="next-btn" onclick="window.app.nextStep()" class="bg-brand-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-brand-700 transition mr-auto">التالي</button>
                     </div>
                 </div>
             </div>
@@ -289,10 +293,10 @@ window.app = {
 
     createProductCard(product) {
         return `
-            <div class="product-card bg-white rounded-2xl p-4 cursor-pointer border border-gray-100" onclick="app.navigate('product', ${product.id})">
+            <div class="product-card bg-white rounded-2xl p-4 cursor-pointer border border-gray-100" onclick="window.app.navigate('product', ${product.id})">
                 <div class="relative h-64 bg-gray-100 rounded-xl overflow-hidden mb-4 group">
                     <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
-                    <button onclick="event.stopPropagation(); app.addToCart(${product.id})" class="absolute bottom-3 right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-brand-600 hover:text-white transition-colors">
+                    <button onclick="event.stopPropagation(); window.app.addToCart(${product.id})" class="absolute bottom-3 right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-brand-600 hover:text-white transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                     </button>
                 </div>
@@ -314,7 +318,7 @@ window.app = {
         const isActive = this.state.filter === key;
         return `
             <button 
-                onclick="app.setFilter('${key}')" 
+                onclick="window.app.setFilter('${key}')" 
                 class="px-5 py-2 rounded-full whitespace-nowrap transition-all font-semibold text-sm ${isActive ? 'bg-brand-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100'}"
             >
                 ${label}
@@ -336,8 +340,8 @@ window.app = {
 
     toggleCart() {
         const overlay = document.getElementById('cart-overlay');
+        if(!overlay) return;
         overlay.classList.toggle('hidden');
-        // Small delay to allow display:block to apply before transform
         setTimeout(() => {
             overlay.classList.toggle('cart-open');
         }, 10);
@@ -380,6 +384,8 @@ window.app = {
         const cartItemsContainer = document.getElementById('cart-items');
         const cartTotalEl = document.getElementById('cart-total');
         const cartBadge = document.getElementById('cart-badge');
+        
+        if(!cartItemsContainer || !cartTotalEl || !cartBadge) return;
 
         // Update Badge
         const totalQty = this.state.cart.reduce((sum, i) => sum + i.qty, 0);
@@ -405,9 +411,9 @@ window.app = {
                     <p class="text-xs text-brand-600 font-bold">${item.price} ر.س</p>
                 </div>
                 <div class="flex items-center bg-gray-50 rounded-lg">
-                    <button onclick="app.updateQty(${item.id}, -1)" class="px-2 py-1 text-gray-500 hover:text-red-500">-</button>
+                    <button onclick="window.app.updateQty(${item.id}, -1)" class="px-2 py-1 text-gray-500 hover:text-red-500">-</button>
                     <span class="text-xs font-bold px-1">${item.qty}</span>
-                    <button onclick="app.updateQty(${item.id}, 1)" class="px-2 py-1 text-gray-500 hover:text-green-500">+</button>
+                    <button onclick="window.app.updateQty(${item.id}, 1)" class="px-2 py-1 text-gray-500 hover:text-green-500">+</button>
                 </div>
             </div>
         `).join('');
@@ -422,7 +428,7 @@ window.app = {
             const stored = localStorage.getItem('akwadra_cart');
             if (stored) this.state.cart = JSON.parse(stored);
         } catch (e) {
-            console.warn("LocalStorage access denied or error:", e);
+            console.error("Error loading cart:", e);
         }
         this.updateCartUI();
     },
@@ -431,7 +437,7 @@ window.app = {
         try {
             localStorage.setItem('akwadra_cart', JSON.stringify(this.state.cart));
         } catch (e) {
-            console.warn("LocalStorage access denied or error:", e);
+            console.error("Error saving cart:", e);
         }
     },
     
@@ -449,54 +455,56 @@ window.app = {
     // Checkout Wizard Logic
     nextStep() {
         if(this.state.step < 3) {
+            // Mark current indicator as completed
             const currentIndicator = document.getElementById(`step-indicator-${this.state.step}`);
-            const currentContent = document.getElementById(`step-content-${this.state.step}`);
+            currentIndicator.classList.add('step-completed');
+            currentIndicator.classList.remove('step-active');
             
-            if(currentIndicator) {
-                currentIndicator.classList.add('step-completed');
-                currentIndicator.classList.remove('step-active');
+            // Color the line connecting to the next step
+            const line = document.getElementById(`line-${this.state.step}`);
+            if(line) {
+                line.classList.remove('bg-gray-200');
+                line.classList.add('bg-brand-600');
             }
-            if(currentContent) {
-                currentContent.classList.add('hidden');
-            }
+            
+            // Hide current content
+            document.getElementById(`step-content-${this.state.step}`).classList.add('hidden');
             
             this.state.step++;
             
-            const nextIndicator = document.getElementById(`step-indicator-${this.state.step}`);
-            const nextContent = document.getElementById(`step-content-${this.state.step}`);
-            
-            if(nextContent) nextContent.classList.remove('hidden');
-            if(nextIndicator) nextIndicator.classList.add('step-active');
+            // Show next content
+            document.getElementById(`step-content-${this.state.step}`).classList.remove('hidden');
+            document.getElementById(`step-indicator-${this.state.step}`).classList.add('step-active');
             
             // Update buttons
-            const prevBtn = document.getElementById('prev-btn');
-            const checkoutNav = document.getElementById('checkout-nav');
-            
-            if(prevBtn) prevBtn.classList.remove('hidden');
-            if(this.state.step === 3 && checkoutNav) {
-                checkoutNav.classList.add('hidden'); // Hide buttons on success
+            document.getElementById('prev-btn').classList.remove('hidden');
+            if(this.state.step === 3) {
+                document.getElementById('checkout-nav').classList.add('hidden'); // Hide buttons on success
             }
         }
     },
 
     prevStep() {
         if(this.state.step > 1) {
-             const currentIndicator = document.getElementById(`step-indicator-${this.state.step}`);
-             const currentContent = document.getElementById(`step-content-${this.state.step}`);
-             
-             if(currentIndicator) currentIndicator.classList.remove('step-active');
-             if(currentContent) currentContent.classList.add('hidden');
+             // Reset current indicator
+             document.getElementById(`step-indicator-${this.state.step}`).classList.remove('step-active');
+             document.getElementById(`step-content-${this.state.step}`).classList.add('hidden');
              
              this.state.step--;
              
+             // Restore prev indicator status
              const prevIndicator = document.getElementById(`step-indicator-${this.state.step}`);
-             const prevContent = document.getElementById(`step-content-${this.state.step}`);
+             prevIndicator.classList.remove('step-completed');
+             prevIndicator.classList.add('step-active');
              
-             if(prevIndicator) {
-                 prevIndicator.classList.remove('step-completed');
-                 prevIndicator.classList.add('step-active');
+             // Uncolor the line
+             const line = document.getElementById(`line-${this.state.step}`);
+             if(line) {
+                 line.classList.add('bg-gray-200');
+                 line.classList.remove('bg-brand-600');
              }
-             if(prevContent) prevContent.classList.remove('hidden');
+             
+             document.getElementById(`step-content-${this.state.step}`).classList.remove('hidden');
 
              if(this.state.step === 1) {
                  document.getElementById('prev-btn').classList.add('hidden');
@@ -506,21 +514,20 @@ window.app = {
 
     showToast(msg) {
         const toast = document.getElementById('toast');
+        if(!toast) return;
         const msgEl = document.getElementById('toast-message');
-        if(msgEl) msgEl.innerText = msg;
+        msgEl.innerText = msg;
         
-        if(toast) {
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+        }, 3000);
     }
 };
 
-// Initialize
+// Initialize safely
 document.addEventListener('DOMContentLoaded', () => {
-    if(window.app && window.app.init) {
+    if (window.app && typeof window.app.init === 'function') {
         window.app.init();
     }
 });
