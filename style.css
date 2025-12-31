@@ -1,11 +1,10 @@
 /* Custom Styles & Utilities */
 
-/* Hide Scrollbar for Chrome, Safari and Opera */
+/* Hide Scrollbar */
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
@@ -42,7 +41,7 @@
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Step Wizard Lines */
+/* Step Wizard Styling */
 .step-active .step-circle {
     background-color: #0d9488;
     color: white;
@@ -55,7 +54,7 @@
     border-color: #0d9488;
 }
 
-/* Fix: Use adjacent sibling selector to target the line coming AFTER the completed step */
-.step-completed + .step-line {
+/* Line color is handled via JS classes now for better sibling control */
+.bg-brand-600 {
     background-color: #0d9488;
 }
