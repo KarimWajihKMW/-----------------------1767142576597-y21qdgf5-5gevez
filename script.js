@@ -1,6 +1,5 @@
 /**
  * Akwadra E-Commerce Store Logic
- * Fixed: Script Error handling, Global Scope access, JSON parsing safety
  */
 
 const products = [
@@ -54,7 +53,6 @@ const products = [
     }
 ];
 
-// Initialize App Object
 const app = {
     state: {
         cart: [],
@@ -65,17 +63,13 @@ const app = {
 
     init() {
         this.loadCart();
-        // Ensure DOM is ready for initial render
-        setTimeout(() => {
-            this.navigate('home');
-            console.log("Store Initialized");
-        }, 10);
+        this.navigate('home');
+        console.log("Store Initialized");
     },
 
     navigate(view, param = null) {
         const container = document.getElementById('app');
-        if(!container) return;
-        
+        if (!container) return;
         window.scrollTo(0,0);
         
         if (view === 'home') {
@@ -121,7 +115,7 @@ const app = {
                         ${this.getFilterButtonHTML('fashion', 'أزياء')}
                         ${this.getFilterButtonHTML('wearables', 'ساعات')}
                     </div>
-                    <select onchange="window.app.setSort(this.value)" class="bg-white border-none shadow-sm rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer">
+                    <select onchange="app.setSort(this.value)" class="bg-white border-none shadow-sm rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer">
                         <option value="default">ترتيب افتراضي</option>
                         <option value="low-high" ${this.state.sort === 'low-high' ? 'selected' : ''}>السعر: الأقل للأعلى</option>
                         <option value="high-low" ${this.state.sort === 'high-low' ? 'selected' : ''}>السعر: الأعلى للأقل</option>
@@ -142,7 +136,7 @@ const app = {
 
         container.innerHTML = `
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in">
-                <button onclick="window.app.navigate('home')" class="mb-6 flex items-center text-gray-500 hover:text-brand-600 transition">
+                <button onclick="app.navigate('home')" class="mb-6 flex items-center text-gray-500 hover:text-brand-600 transition">
                     <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                     العودة للمتجر
                 </button>
@@ -162,7 +156,7 @@ const app = {
                             </div>
                         </div>
                         <div class="flex gap-4">
-                            <button onclick="window.app.addToCart(${product.id})" class="flex-1 bg-brand-600 text-white py-4 rounded-xl font-bold hover:bg-brand-700 transition shadow-lg hover:shadow-brand-500/30">
+                            <button onclick="app.addToCart(${product.id})" class="flex-1 bg-brand-600 text-white py-4 rounded-xl font-bold hover:bg-brand-700 transition shadow-lg hover:shadow-brand-500/30">
                                 أضف للسلة
                             </button>
                             <button class="p-4 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-500">
@@ -275,15 +269,15 @@ const app = {
                         </div>
                         <h3 class="text-2xl font-bold text-gray-900 mb-2">تم الطلب بنجاح!</h3>
                         <p class="text-gray-500 mb-8">رقم طلبك هو #49230. سنقوم بإرسال التفاصيل إلى بريدك الإلكتروني.</p>
-                        <button onclick="window.app.clearCart(); window.app.navigate('home')" class="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition">
+                        <button onclick="app.clearCart(); app.navigate('home')" class="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition">
                             العودة للتسوق
                         </button>
                     </div>
 
                     <!-- Navigation Buttons -->
                     <div class="flex justify-between mt-8 pt-6 border-t" id="checkout-nav">
-                        <button id="prev-btn" onclick="window.app.prevStep()" class="px-6 py-2 text-gray-500 hover:text-gray-800 disabled:opacity-50 hidden">سابق</button>
-                        <button id="next-btn" onclick="window.app.nextStep()" class="bg-brand-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-brand-700 transition mr-auto">التالي</button>
+                        <button id="prev-btn" onclick="app.prevStep()" class="px-6 py-2 text-gray-500 hover:text-gray-800 disabled:opacity-50 hidden">سابق</button>
+                        <button id="next-btn" onclick="app.nextStep()" class="bg-brand-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-brand-700 transition mr-auto">التالي</button>
                     </div>
                 </div>
             </div>
@@ -294,10 +288,10 @@ const app = {
 
     createProductCard(product) {
         return `
-            <div class="product-card bg-white rounded-2xl p-4 cursor-pointer border border-gray-100" onclick="window.app.navigate('product', ${product.id})">
+            <div class="product-card bg-white rounded-2xl p-4 cursor-pointer border border-gray-100" onclick="app.navigate('product', ${product.id})">
                 <div class="relative h-64 bg-gray-100 rounded-xl overflow-hidden mb-4 group">
                     <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
-                    <button onclick="event.stopPropagation(); window.app.addToCart(${product.id})" class="absolute bottom-3 right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-brand-600 hover:text-white transition-colors">
+                    <button onclick="event.stopPropagation(); app.addToCart(${product.id})" class="absolute bottom-3 right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-brand-600 hover:text-white transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                     </button>
                 </div>
@@ -319,7 +313,7 @@ const app = {
         const isActive = this.state.filter === key;
         return `
             <button 
-                onclick="window.app.setFilter('${key}')" 
+                onclick="app.setFilter('${key}')" 
                 class="px-5 py-2 rounded-full whitespace-nowrap transition-all font-semibold text-sm ${isActive ? 'bg-brand-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100'}"
             >
                 ${label}
@@ -386,8 +380,6 @@ const app = {
         const cartTotalEl = document.getElementById('cart-total');
         const cartBadge = document.getElementById('cart-badge');
 
-        if (!cartItemsContainer) return;
-
         // Update Badge
         const totalQty = this.state.cart.reduce((sum, i) => sum + i.qty, 0);
         cartBadge.innerText = totalQty;
@@ -412,9 +404,9 @@ const app = {
                     <p class="text-xs text-brand-600 font-bold">${item.price} ر.س</p>
                 </div>
                 <div class="flex items-center bg-gray-50 rounded-lg">
-                    <button onclick="window.app.updateQty(${item.id}, -1)" class="px-2 py-1 text-gray-500 hover:text-red-500">-</button>
+                    <button onclick="app.updateQty(${item.id}, -1)" class="px-2 py-1 text-gray-500 hover:text-red-500">-</button>
                     <span class="text-xs font-bold px-1">${item.qty}</span>
-                    <button onclick="window.app.updateQty(${item.id}, 1)" class="px-2 py-1 text-gray-500 hover:text-green-500">+</button>
+                    <button onclick="app.updateQty(${item.id}, 1)" class="px-2 py-1 text-gray-500 hover:text-green-500">+</button>
                 </div>
             </div>
         `).join('');
@@ -425,21 +417,21 @@ const app = {
     },
 
     loadCart() {
-        const stored = localStorage.getItem('akwadra_cart');
-        if (stored) {
-            try {
-                this.state.cart = JSON.parse(stored);
-            } catch (e) {
-                console.error("Corrupt cart data, clearing.", e);
-                localStorage.removeItem('akwadra_cart');
-                this.state.cart = [];
-            }
+        try {
+            const stored = localStorage.getItem('akwadra_cart');
+            if (stored) this.state.cart = JSON.parse(stored);
+        } catch (e) {
+            console.warn("LocalStorage disabled or unavailable");
         }
         this.updateCartUI();
     },
 
     saveCart() {
-        localStorage.setItem('akwadra_cart', JSON.stringify(this.state.cart));
+        try {
+            localStorage.setItem('akwadra_cart', JSON.stringify(this.state.cart));
+        } catch (e) {
+            console.warn("Cannot save to LocalStorage");
+        }
     },
     
     clearCart() {
@@ -456,66 +448,68 @@ const app = {
     // Checkout Wizard Logic
     nextStep() {
         if(this.state.step < 3) {
-            const currentIndicator = document.getElementById(`step-indicator-${this.state.step}`);
-            const currentLine = document.getElementById(`line-${this.state.step}`);
-            const currentContent = document.getElementById(`step-content-${this.state.step}`);
+            const currentStep = this.state.step;
+            const nextStep = currentStep + 1;
             
-            if(currentIndicator) {
-                currentIndicator.classList.add('step-completed');
-                currentIndicator.classList.remove('step-active');
+            // Mark current as completed
+            const currentIndicator = document.getElementById(`step-indicator-${currentStep}`);
+            currentIndicator.classList.add('step-completed');
+            currentIndicator.classList.remove('step-active');
+            
+            // Color the connector line
+            const line = document.getElementById(`line-${currentStep}`);
+            if(line) {
+                line.classList.remove('bg-gray-200');
+                line.classList.add('bg-brand-600');
             }
-            if(currentLine) {
-                currentLine.classList.add('bg-brand-600');
-            }
-            if(currentContent) {
-                currentContent.classList.add('hidden');
-            }
             
-            this.state.step++;
+            // Hide current content
+            document.getElementById(`step-content-${currentStep}`).classList.add('hidden');
             
-            const nextIndicator = document.getElementById(`step-indicator-${this.state.step}`);
-            const nextContent = document.getElementById(`step-content-${this.state.step}`);
+            // Update state
+            this.state.step = nextStep;
             
-            if(nextContent) nextContent.classList.remove('hidden');
-            if(nextIndicator) nextIndicator.classList.add('step-active');
+            // Show next content
+            document.getElementById(`step-content-${nextStep}`).classList.remove('hidden');
+            document.getElementById(`step-indicator-${nextStep}`).classList.add('step-active');
             
             // Update buttons
-            const prevBtn = document.getElementById('prev-btn');
-            const nav = document.getElementById('checkout-nav');
-            
-            if(prevBtn) prevBtn.classList.remove('hidden');
-            if(this.state.step === 3 && nav) {
-                nav.classList.add('hidden'); // Hide buttons on success
+            document.getElementById('prev-btn').classList.remove('hidden');
+            if(nextStep === 3) {
+                document.getElementById('checkout-nav').classList.add('hidden'); // Hide buttons on success/review view
             }
         }
     },
 
     prevStep() {
         if(this.state.step > 1) {
-             const currentIndicator = document.getElementById(`step-indicator-${this.state.step}`);
-             const currentContent = document.getElementById(`step-content-${this.state.step}`);
-             
-             if(currentIndicator) currentIndicator.classList.remove('step-active');
-             if(currentContent) currentContent.classList.add('hidden');
-             
-             this.state.step--;
-             
-             const prevIndicator = document.getElementById(`step-indicator-${this.state.step}`);
-             const prevContent = document.getElementById(`step-content-${this.state.step}`);
-             const prevLine = document.getElementById(`line-${this.state.step}`);
-             
-             if(prevIndicator) {
-                prevIndicator.classList.remove('step-completed');
-                prevIndicator.classList.add('step-active');
-             }
-             if(prevLine) {
-                 prevLine.classList.remove('bg-brand-600');
-             }
-             if(prevContent) prevContent.classList.remove('hidden');
+            const currentStep = this.state.step;
+            const prevStep = currentStep - 1;
 
-             const prevBtn = document.getElementById('prev-btn');
-             if(this.state.step === 1 && prevBtn) {
-                 prevBtn.classList.add('hidden');
+             // Reset current
+             document.getElementById(`step-indicator-${currentStep}`).classList.remove('step-active');
+             document.getElementById(`step-content-${currentStep}`).classList.add('hidden');
+             
+             // Update state
+             this.state.step = prevStep;
+             
+             // Restore prev indicator
+             const prevIndicator = document.getElementById(`step-indicator-${prevStep}`);
+             prevIndicator.classList.remove('step-completed');
+             prevIndicator.classList.add('step-active');
+             
+             // Uncolor the connector line
+             const line = document.getElementById(`line-${prevStep}`);
+             if(line) {
+                line.classList.remove('bg-brand-600');
+                line.classList.add('bg-gray-200');
+             }
+
+             // Show prev content
+             document.getElementById(`step-content-${prevStep}`).classList.remove('hidden');
+
+             if(prevStep === 1) {
+                 document.getElementById('prev-btn').classList.add('hidden');
              }
         }
     },
@@ -523,19 +517,15 @@ const app = {
     showToast(msg) {
         const toast = document.getElementById('toast');
         const msgEl = document.getElementById('toast-message');
-        if(!toast || !msgEl) return;
-
-        msgEl.innerText = msg;
-        
-        toast.classList.remove('translate-y-20', 'opacity-0');
-        setTimeout(() => {
-            toast.classList.add('translate-y-20', 'opacity-0');
-        }, 3000);
+        if(toast && msgEl) {
+            msgEl.innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
     }
 };
-
-// Explicitly attach to window for inline handlers in all environments
-window.app = app;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
