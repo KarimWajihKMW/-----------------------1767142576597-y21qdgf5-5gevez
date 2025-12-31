@@ -53,7 +53,8 @@ const products = [
     }
 ];
 
-const app = {
+// Use window.app to ensure global accessibility for inline event handlers
+window.app = {
     state: {
         cart: [],
         filter: 'all',
@@ -62,16 +63,9 @@ const app = {
     },
 
     init() {
-        try {
-            this.loadCart();
-            this.navigate('home');
-            console.log("Store Initialized");
-        } catch (e) {
-            console.error("Initialization error:", e);
-            localStorage.removeItem('akwadra_cart'); // Clear corrupted data
-            this.state.cart = [];
-            this.navigate('home');
-        }
+        this.loadCart();
+        this.navigate('home');
+        console.log("Store Initialized");
     },
 
     navigate(view, param = null) {
@@ -90,8 +84,9 @@ const app = {
     // --- Views ---
 
     renderHome(container) {
+        // Fix: Use Spread operator to create a copy before sorting to avoid mutating the original products array
         let filteredProducts = this.state.filter === 'all' 
-            ? products 
+            ? [...products] 
             : products.filter(p => p.category === this.state.filter);
         
         // Sorting logic
@@ -137,7 +132,7 @@ const app = {
     },
 
     renderProductDetails(container, id) {
-        const product = products.find(p => p.id === parseInt(id));
+        const product = products.find(p => p.id === id);
         if(!product) return this.navigate('home');
 
         container.innerHTML = `
@@ -211,23 +206,18 @@ const app = {
                 <!-- Steps Indicator -->
                 <div class="flex items-center justify-center mb-10">
                     <div class="flex items-center w-full max-w-lg">
-                        <!-- Step 1 -->
                         <div class="step-item relative flex flex-col items-center flex-1 step-active" id="step-indicator-1">
                             <div class="step-circle w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold bg-white text-gray-500 z-10 transition-colors duration-300">1</div>
                             <div class="text-xs mt-2 font-semibold text-gray-500">الشحن</div>
                         </div>
-                        <!-- Line 1 -->
                         <div class="step-line h-1 flex-auto bg-gray-200 -mt-6 transition-colors duration-300" id="line-1"></div>
                         
-                        <!-- Step 2 -->
                         <div class="step-item relative flex flex-col items-center flex-1" id="step-indicator-2">
                             <div class="step-circle w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center font-bold bg-white text-gray-500 z-10 transition-colors duration-300">2</div>
                             <div class="text-xs mt-2 font-semibold text-gray-500">الدفع</div>
                         </div>
-                        <!-- Line 2 -->
                         <div class="step-line h-1 flex-auto bg-gray-200 -mt-6 transition-colors duration-300" id="line-2"></div>
 
-                        <!-- Step 3 -->
                         <div class="step-item relative flex flex-col items-center flex-1" id="step-indicator-3">
                             <div class="step-circle w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center font-bold bg-white text-gray-500 z-10 transition-colors duration-300">3</div>
                             <div class="text-xs mt-2 font-semibold text-gray-500">المراجعة</div>
@@ -346,19 +336,16 @@ const app = {
 
     toggleCart() {
         const overlay = document.getElementById('cart-overlay');
-        if(!overlay) return;
-        
         overlay.classList.toggle('hidden');
+        // Small delay to allow display:block to apply before transform
         setTimeout(() => {
             overlay.classList.toggle('cart-open');
         }, 10);
     },
 
     addToCart(id) {
-        const product = products.find(p => p.id === parseInt(id));
-        if (!product) return;
-
-        const existing = this.state.cart.find(i => i.id === product.id);
+        const product = products.find(p => p.id === id);
+        const existing = this.state.cart.find(i => i.id === id);
         
         if (existing) {
             existing.qty++;
@@ -393,18 +380,11 @@ const app = {
         const cartItemsContainer = document.getElementById('cart-items');
         const cartTotalEl = document.getElementById('cart-total');
         const cartBadge = document.getElementById('cart-badge');
-        
-        if (!cartItemsContainer || !cartTotalEl || !cartBadge) return;
 
         // Update Badge
         const totalQty = this.state.cart.reduce((sum, i) => sum + i.qty, 0);
         cartBadge.innerText = totalQty;
-        
-        if (totalQty === 0) {
-            cartBadge.classList.add('opacity-0');
-        } else {
-            cartBadge.classList.remove('opacity-0');
-        }
+        cartBadge.classList.toggle('opacity-0', totalQty === 0);
 
         // Update List
         if (this.state.cart.length === 0) {
@@ -438,20 +418,21 @@ const app = {
     },
 
     loadCart() {
-        const stored = localStorage.getItem('akwadra_cart');
-        if (stored) {
-            try {
-                this.state.cart = JSON.parse(stored);
-            } catch (e) {
-                console.error("Error parsing cart", e);
-                this.state.cart = [];
-            }
+        try {
+            const stored = localStorage.getItem('akwadra_cart');
+            if (stored) this.state.cart = JSON.parse(stored);
+        } catch (e) {
+            console.warn("LocalStorage access denied or error:", e);
         }
         this.updateCartUI();
     },
 
     saveCart() {
-        localStorage.setItem('akwadra_cart', JSON.stringify(this.state.cart));
+        try {
+            localStorage.setItem('akwadra_cart', JSON.stringify(this.state.cart));
+        } catch (e) {
+            console.warn("LocalStorage access denied or error:", e);
+        }
     },
     
     clearCart() {
@@ -468,103 +449,78 @@ const app = {
     // Checkout Wizard Logic
     nextStep() {
         if(this.state.step < 3) {
-            const currentStep = this.state.step;
-            const nextStep = currentStep + 1;
-
-            // Update indicators and lines
-            const currentIndicator = document.getElementById(`step-indicator-${currentStep}`);
-            const nextIndicator = document.getElementById(`step-indicator-${nextStep}`);
-            const line = document.getElementById(`line-${currentStep}`);
-
-            if (currentIndicator) {
-                currentIndicator.classList.remove('step-active');
+            const currentIndicator = document.getElementById(`step-indicator-${this.state.step}`);
+            const currentContent = document.getElementById(`step-content-${this.state.step}`);
+            
+            if(currentIndicator) {
                 currentIndicator.classList.add('step-completed');
+                currentIndicator.classList.remove('step-active');
             }
-
-            if (line) {
-                line.classList.remove('bg-gray-200');
-                line.classList.add('bg-brand-600');
+            if(currentContent) {
+                currentContent.classList.add('hidden');
             }
-
-            if (nextIndicator) {
-                nextIndicator.classList.add('step-active');
-            }
-
-            // Toggle content
-            const currentContent = document.getElementById(`step-content-${currentStep}`);
-            const nextContent = document.getElementById(`step-content-${nextStep}`);
-
-            if (currentContent) currentContent.classList.add('hidden');
-            if (nextContent) nextContent.classList.remove('hidden');
-
-            this.state.step = nextStep;
-
-            // Manage buttons
-            document.getElementById('prev-btn').classList.remove('hidden');
-            if(this.state.step === 3) {
-                const nav = document.getElementById('checkout-nav');
-                if (nav) nav.classList.add('hidden');
+            
+            this.state.step++;
+            
+            const nextIndicator = document.getElementById(`step-indicator-${this.state.step}`);
+            const nextContent = document.getElementById(`step-content-${this.state.step}`);
+            
+            if(nextContent) nextContent.classList.remove('hidden');
+            if(nextIndicator) nextIndicator.classList.add('step-active');
+            
+            // Update buttons
+            const prevBtn = document.getElementById('prev-btn');
+            const checkoutNav = document.getElementById('checkout-nav');
+            
+            if(prevBtn) prevBtn.classList.remove('hidden');
+            if(this.state.step === 3 && checkoutNav) {
+                checkoutNav.classList.add('hidden'); // Hide buttons on success
             }
         }
     },
 
     prevStep() {
         if(this.state.step > 1) {
-            const currentStep = this.state.step;
-            const prevStep = currentStep - 1;
+             const currentIndicator = document.getElementById(`step-indicator-${this.state.step}`);
+             const currentContent = document.getElementById(`step-content-${this.state.step}`);
+             
+             if(currentIndicator) currentIndicator.classList.remove('step-active');
+             if(currentContent) currentContent.classList.add('hidden');
+             
+             this.state.step--;
+             
+             const prevIndicator = document.getElementById(`step-indicator-${this.state.step}`);
+             const prevContent = document.getElementById(`step-content-${this.state.step}`);
+             
+             if(prevIndicator) {
+                 prevIndicator.classList.remove('step-completed');
+                 prevIndicator.classList.add('step-active');
+             }
+             if(prevContent) prevContent.classList.remove('hidden');
 
-            // Update indicators and lines
-            const currentIndicator = document.getElementById(`step-indicator-${currentStep}`);
-            const prevIndicator = document.getElementById(`step-indicator-${prevStep}`);
-            const line = document.getElementById(`line-${prevStep}`);
-
-            if (currentIndicator) {
-                currentIndicator.classList.remove('step-active');
-            }
-
-            if (prevIndicator) {
-                prevIndicator.classList.remove('step-completed');
-                prevIndicator.classList.add('step-active');
-            }
-
-            if (line) {
-                line.classList.remove('bg-brand-600');
-                line.classList.add('bg-gray-200');
-            }
-
-            // Toggle content
-            const currentContent = document.getElementById(`step-content-${currentStep}`);
-            const prevContent = document.getElementById(`step-content-${prevStep}`);
-
-            if (currentContent) currentContent.classList.add('hidden');
-            if (prevContent) prevContent.classList.remove('hidden');
-
-            this.state.step = prevStep;
-
-            if(this.state.step === 1) {
-                document.getElementById('prev-btn').classList.add('hidden');
-            }
+             if(this.state.step === 1) {
+                 document.getElementById('prev-btn').classList.add('hidden');
+             }
         }
     },
 
     showToast(msg) {
         const toast = document.getElementById('toast');
         const msgEl = document.getElementById('toast-message');
-        if (!toast || !msgEl) return;
+        if(msgEl) msgEl.innerText = msg;
         
-        msgEl.innerText = msg;
-        
-        toast.classList.remove('translate-y-20', 'opacity-0');
-        setTimeout(() => {
-            toast.classList.add('translate-y-20', 'opacity-0');
-        }, 3000);
+        if(toast) {
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
     }
 };
 
-// Make globally available
-window.app = app;
-
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    app.init();
+    if(window.app && window.app.init) {
+        window.app.init();
+    }
 });
