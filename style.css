@@ -42,7 +42,7 @@
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Step Wizard Styling */
+/* Step Wizard Lines */
 .step-active .step-circle {
     background-color: #0d9488;
     color: white;
@@ -55,4 +55,7 @@
     border-color: #0d9488;
 }
 
-/* Lines are now handled via JS class toggling for better sibling control */
+/* Fix: Use adjacent sibling selector to target the line coming AFTER the completed step */
+.step-completed + .step-line {
+    background-color: #0d9488;
+}
