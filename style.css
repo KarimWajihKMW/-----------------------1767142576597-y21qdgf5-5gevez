@@ -25,7 +25,7 @@
     from {
         opacity: 0;
         transform: translateY(10px);
-    } 
+    }
     to {
         opacity: 1;
         transform: translateY(0);
@@ -55,7 +55,4 @@
     border-color: #0d9488;
 }
 
-/* Lines are handled via JS now for correct sibling coloring, but we add transition */
-.step-line {
-    transition: background-color 0.3s ease;
-}
+/* Lines are now handled via JS class toggling for better sibling control */
